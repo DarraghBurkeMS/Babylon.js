@@ -3,6 +3,8 @@ import { GlobalState } from '../../../../../globalState';
 import { BaseTexture } from 'babylonjs/Materials/Textures/baseTexture';
 import { TextureCanvasManager } from './textureCanvasManager';
 import { TextureChannelToDisplay } from '../../../../../../textureHelper';
+import { Tool, Toolbar } from './toolbar';
+import { Tools } from "babylonjs/Misc/tools";
 
 require('./textureEditor.scss');
 
@@ -13,6 +15,10 @@ interface TextureEditorComponentProps {
 
 interface TextureEditorComponentState {
     channel: TextureChannelToDisplay;
+}
+
+declare global {
+    var _TOOL_DATA_ : any;
 }
 
 export class TextureEditorComponent extends React.Component<TextureEditorComponentProps, TextureEditorComponentState> {
@@ -51,6 +57,43 @@ export class TextureEditorComponent extends React.Component<TextureEditorCompone
 
     componentWillUnmount() {
         this._textureCanvasManager.dispose();
+    }
+
+    loadTool(url : string) {
+        Tools.LoadScript(url,
+            () => {
+                const tool : Tool = {
+                    ..._TOOL_DATA_,
+                    instance: new _TOOL_DATA_.type({
+                        scene: this._textureCanvasManager.scene,
+                        canvas2D: this._textureCanvasManager.canvas2D,
+                        size: this._textureCanvasManager.size,
+                        updateTexture: () => this._textureCanvasManager.updateTexture(),
+                        getMetadata: () => this.state.metadata,
+                        setMetadata: (data : any) => this.setMetadata(data)
+                    })
+                };
+                const newTools = this.state.tools.concat(tool);
+                this.setState({tools: newTools});
+                console.log(tool);
+            });
+    }
+
+    changeTool(index : number) {
+        if (index != -1) {
+            this._textureCanvasManager.tool = this.state.tools[index];
+        } else {
+            this._textureCanvasManager.tool = null;
+        }
+        this.setState({activeToolIndex: index});
+    }
+
+    setMetadata(newMetadata : any) {
+        const data = {
+            ...this.state.metadata,
+            ...newMetadata
+        }
+        this.setState({metadata: data});
     }
 
     render() {
