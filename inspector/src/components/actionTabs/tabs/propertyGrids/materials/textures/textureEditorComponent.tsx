@@ -4,6 +4,7 @@ import { BaseTexture } from 'babylonjs/Materials/Textures/baseTexture';
 import { TextureCanvasManager } from './textureCanvasManager';
 import { TextureChannelToDisplay } from '../../../../../../textureHelper';
 import { Tool, Toolbar } from './toolbar';
+import { Tools } from "babylonjs/Misc/tools";
 
 require('./textureEditor.scss');
 
@@ -17,6 +18,10 @@ interface TextureEditorComponentState {
     tools: Tool[];
     activeToolIndex: number;
     metadata: any;
+}
+
+declare global {
+    var _TOOL_DATA_ : any;
 }
 
 export class TextureEditorComponent extends React.Component<TextureEditorComponentProps, TextureEditorComponentState> {
@@ -68,13 +73,11 @@ export class TextureEditorComponent extends React.Component<TextureEditorCompone
     }
 
     loadTool(url : string) {
-        fetch(url)
-            .then(response => response.text())
-            .then(text => {
-                const toolData = eval(text);
+        Tools.LoadScript(url,
+            () => {
                 const tool : Tool = {
-                    ...toolData,
-                    instance: new toolData.type({
+                    ..._TOOL_DATA_,
+                    instance: new _TOOL_DATA_.type({
                         scene: this._textureCanvasManager.scene,
                         canvas2D: this._textureCanvasManager.canvas2D,
                         size: this._textureCanvasManager.size,
@@ -82,9 +85,9 @@ export class TextureEditorComponent extends React.Component<TextureEditorCompone
                         getMetadata: () => this.state.metadata,
                         setMetadata: (data : any) => this.setMetadata(data)
                     })
-                }
+                };
                 const newTools = this.state.tools.concat(tool);
-                this.setState({tools: newTools})
+                this.setState({tools: newTools});
                 console.log(tool);
             });
     }
