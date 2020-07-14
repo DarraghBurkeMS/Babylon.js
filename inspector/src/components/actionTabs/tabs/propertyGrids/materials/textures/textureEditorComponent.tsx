@@ -15,9 +15,6 @@ interface TextureEditorComponentProps {
 
 interface TextureEditorComponentState {
     channel: TextureChannelToDisplay;
-    tools: Tool[];
-    activeToolIndex: number;
-    metadata: any;
 }
 
 declare global {
@@ -42,16 +39,7 @@ export class TextureEditorComponent extends React.Component<TextureEditorCompone
         super(props);
         this.state = {
             channel: TextureChannelToDisplay.All,
-            tools: [],
-            activeToolIndex: -1,
-            metadata: {
-                color: '#ffffff',
-                opacity: 1
-            }
         }
-        this.loadTool = this.loadTool.bind(this);
-        this.changeTool = this.changeTool.bind(this);
-        this.setMetadata = this.setMetadata.bind(this);
     }
 
     componentDidMount() {
@@ -65,7 +53,6 @@ export class TextureEditorComponent extends React.Component<TextureEditorCompone
 
     componentDidUpdate() {
         this._textureCanvasManager.displayChannel = this.state.channel;
-        this._textureCanvasManager.metadata = this.state.metadata;
     }
 
     componentWillUnmount() {
@@ -112,14 +99,6 @@ export class TextureEditorComponent extends React.Component<TextureEditorCompone
     render() {
         return <div id="texture-editor">
             <div id="controls">
-                <Toolbar
-                    tools={this.state.tools}
-                    activeToolIndex={this.state.activeToolIndex}
-                    addTool={this.loadTool}
-                    changeTool={this.changeTool}
-                    metadata={this.state.metadata}
-                    setMetadata={this.setMetadata}
-                />
                 <div id="channels">
                     {this.channels.map(
                         item => {

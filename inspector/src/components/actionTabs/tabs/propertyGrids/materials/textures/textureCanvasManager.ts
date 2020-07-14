@@ -18,7 +18,6 @@ import { ISize } from 'babylonjs/Maths/math.size';
 
 import { PointerEventTypes } from 'babylonjs/Events/pointerEvents';
 import { KeyboardEventTypes } from 'babylonjs/Events/keyboardEvents';
-import { Tool } from './toolbar';
 
 export class TextureCanvasManager {
     private _engine: Engine;
@@ -66,8 +65,6 @@ export class TextureCanvasManager {
     private static PAN_MOUSE_BUTTON : number = 0; // RMB
     private static PAN_KEY : string = ' ';
 
-    private _tool : Nullable<Tool>;
-
     private static MIN_SCALE : number = 0.01;
     private static MAX_SCALE : number = 10;
 
@@ -95,15 +92,6 @@ export class TextureCanvasManager {
             /* Grab image data from original texture and paint it onto the context of a DynamicTexture */
             const pixelData = this._originalTexture.readPixels()!;
             TextureCanvasManager.paintPixelsOnCanvas(new Uint8Array(pixelData.buffer), this._2DCanvas);
-            this._texture.update();
-        } else {
-            /* If we don't have a texture to start with, just generate a white rectangle */
-            const ctx = this._2DCanvas.getContext("2d")!;
-            ctx.globalAlpha = 1.0;
-            ctx.globalCompositeOperation = 'source-over';
-            ctx.resetTransform();
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, this._2DCanvas.width, this._2DCanvas.height);
             this._texture.update();
         }
 
@@ -241,24 +229,11 @@ export class TextureCanvasManager {
         const ctx = canvas.getContext('2d')!;
         const transform = ctx.getTransform();
         ctx.globalCompositeOperation = 'copy';
+        ctx.globalAlpha = 1.0;
         ctx.translate(0,canvas.height);
         ctx.scale(1,-1);
         ctx.drawImage(canvas, 0, 0);
         ctx.setTransform(transform);
-    }
-
-    public set tool(tool: Nullable<Tool>) {
-        if (this._tool) {
-            this._tool.instance.cleanup();
-        }
-        this._tool = tool;
-        if (this._tool) {
-            this._tool.instance.setup();
-        }
-    }
-
-    public get tool(): Nullable<Tool> {
-        return this._tool;
     }
 
     public get scene() : Scene {
@@ -279,9 +254,6 @@ export class TextureCanvasManager {
         }
         if (this._originalInternalTexture) {
             this._originalInternalTexture.dispose();
-        }
-        if (this._tool) {
-            this._tool.instance.cleanup();
         }
         this._displayTexture.dispose();
         this._texture.dispose();
